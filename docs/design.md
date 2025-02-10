@@ -37,7 +37,7 @@ This document details the design for a new **hardware-optimized ML framework** w
 
 ## 2. Goals and Scope
 
-- **Usability:**  
+- **Usability:**
   Provide a simple, intuitive, imperative API (with mutable arrays) that lowers the learning curve compared to JAX, while maintaining powerful features such as automatic differentiation and dynamic graph execution.
   
 - **Performance:**  
