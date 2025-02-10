@@ -1,4 +1,5 @@
 # flash: a hardware-optimized ML framework
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
