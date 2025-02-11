@@ -12,6 +12,12 @@
     - 4.2 [Hardware Abstraction and Kernel Integration](#hardware-abstraction-and-kernel-integration)
     - 4.3 [Distributed Training & LLM-Specific Features](#distributed-training-llm-specific-features)
 5. [Repository Structure Overview](#repository-structure-overview)
+    - 5.1 [C++ Implementation (Primary)](#c++-implementation)
+    - 5.2 [Rust Implementation](#rust-implementation)
+    - 5.3 [Go Implementation](#go-implementation)
+    - 5.4 [Zig Implementation](#zig-implementation)
+    - 5.5 [C Implementation](#c-implementation)
+    - 5.6 [Python Bindings Implementation](#python-bindings-implementation)
 6. [Detailed File and Directory Descriptions](#detailed-file-and-directory-descriptions)
     - 6.1 [Build System Files](#build-system-files)
     - 6.2 [Core Library Files](#core-library-files)
@@ -58,7 +64,7 @@ This document details the design for a new **hardware-optimized ML framework** w
 
 ### 3.1 Ease of Use
 - **Imperative Programming Model:**  
-  Unlike JAX’s functional and immutable array paradigm, our framework uses a more intuitive, imperative style with mutable arrays. This design minimizes the cognitive overhead and debugging complexity, making it accessible to users who prefer traditional programming paradigms.
+  Unlike JAX's functional and immutable array paradigm, our framework uses a more intuitive, imperative style with mutable arrays. This design minimizes the cognitive overhead and debugging complexity, making it accessible to users who prefer traditional programming paradigms.
   
 - **Clear, Minimal API Surface:**  
   Expose a user-friendly API that abstracts away the low-level details while still offering control over performance-critical aspects when needed.
@@ -74,7 +80,7 @@ This document details the design for a new **hardware-optimized ML framework** w
   A dedicated device abstraction layer will handle efficient memory transfers and device-specific optimizations, ensuring minimal overhead and maximal performance across different hardware configurations.
 
 - **Distributed and Multi-GPU Optimizations:**  
-  Provide built-in primitives and kernels for distributed training that are tightly integrated into the framework’s core, reducing synchronization overhead and ensuring near-linear scaling.
+  Provide built-in primitives and kernels for distributed training that are tightly integrated into the framework's core, reducing synchronization overhead and ensuring near-linear scaling.
 
 ---
 
@@ -125,53 +131,336 @@ This document details the design for a new **hardware-optimized ML framework** w
 
 ## 5. Repository Structure Overview
 
+### 5.1 C++ Implementation (Primary)
 ```
-hardware-optimized-ml-framework/
+flash-cpp/
 ├── CMakeLists.txt                    # Build configuration
-├── README.md                         # Project overview, setup, and usage instructions
+├── README.md                         # Project overview
 ├── docs/
-│   └── design.md                     # This design document (and future design notes)
+│   └── design.md                     # Design documentation
 ├── include/
-│   ├── framework/                    # Public API headers for core components
-│   │   ├── tensor.h                  # Declaration of the Tensor class (imperative API)
-│   │   ├── autograd.h                # Autograd engine interface
-│   │   ├── module.h                  # Base class for neural network modules
-│   │   ├── optimizer.h               # Optimizer interfaces (SGD, Adam, etc.)
-│   │   ├── device.h                  # Device abstraction (CPU/GPU)
-│   │   └── distributed.h             # Distributed training APIs
-│   └── custom_kernels/               # Kernel interface headers
-│       ├── matmul_kernel.h           # Matrix multiplication kernel interface
-│       ├── conv2d_kernel.h           # Convolution kernel interface
-│       └── transformer_kernel.h      # Transformer-specific kernels
+│   ├── framework/                    # Public API headers
+│   │   ├── tensor.h                  # Tensor class
+│   │   ├── autograd.h                # Autograd engine
+│   │   ├── module.h                  # Neural network modules
+│   │   ├── optimizer.h               # Optimizers
+│   │   ├── device.h                  # Device abstraction
+│   │   └── distributed.h             # Distributed training
+│   ├── nn/                           # Neural network layers
+│   │   ├── linear.h                  # Linear layer
+│   │   ├── conv.h                    # Convolution layers
+│   │   ├── activation.h              # Activation functions
+│   │   └── batchnorm.h              # Batch normalization
+│   └── custom_kernels/               # CUDA kernel interfaces
 ├── src/
-│   ├── main.cpp                      # Entry point / demo application
-│   ├── tensor.cpp                    # Tensor class implementation (imperative, mutable arrays)
-│   ├── autograd.cpp                  # Autograd engine implementation
-│   ├── module.cpp                    # Module base class implementation
-│   ├── optimizer.cpp                 # Optimizer implementations
-│   ├── device.cpp                    # Device management implementation
-│   └── distributed.cpp               # Distributed training routines
+│   ├── tensor.cpp                    # Tensor implementation
+│   ├── autograd.cpp                  # Autograd implementation
+│   ├── module.cpp                    # Module base class
+│   ├── optimizer.cpp                 # Optimizers
+│   └── distributed.cpp               # Distributed training
 ├── kernels/
-│   ├── single_gpu/                   # Kernels for single GPU acceleration
-│   │   ├── matmul.cu                 # Optimized CUDA matrix multiplication
-│   │   ├── conv2d.cu                 # Optimized CUDA convolution (conv2d)
-│   │   └── transformer_attention.cu  # Optimized transformer attention kernel
-│   └── multi_gpu/                    # Kernels supporting multi-GPU/distributed setups
-│       ├── all_reduce.cu             # Custom all-reduce operation
-│       ├── ring_reduce.cu            # Alternative reduction method
-│       └── pipeline_parallel.cu      # Support for pipeline parallelism
+│   ├── single_gpu/                   # Single GPU kernels
+│   │   ├── elementwise.cu           # Element-wise operations
+│   │   ├── matmul.cu               # Matrix multiplication
+│   │   └── conv.cu                 # Convolution operations
+│   └── multi_gpu/                    # Multi-GPU kernels
 ├── examples/
-│   ├── mnist.cpp                     # MNIST training example demonstrating imperative coding style
-│   ├── transformer_llm.cpp           # Example for LLM training with transformer optimizations
-│   └── distributed_training.cpp      # Example demonstrating multi-GPU training and ease-of-use
-├── tests/
-│   ├── test_tensor.cpp               # Unit tests for tensor operations
-│   ├── test_autograd.cpp             # Unit tests for autograd engine
-│   ├── test_kernels.cu               # Unit tests for custom kernels
-│   └── test_distributed.cpp          # Tests for distributed routines
-└── third_party/                      # External libraries and dependencies (if any)
-    └── README.md                     # Instructions for third-party integrations
+│   ├── mnist.cpp                     # MNIST example
+│   └── distributed.cpp               # Distributed training
+└── tests/                            # Unit tests
 ```
+
+### 5.2 Rust Implementation
+```
+flash-rs/
+├── Cargo.toml                        # Rust package manifest
+├── README.md                         # Project overview
+├── src/
+│   ├── lib.rs                        # Library root
+│   ├── tensor/
+│   │   ├── mod.rs                    # Tensor module
+│   │   └── ops.rs                    # Tensor operations
+│   ├── autograd/
+│   │   ├── mod.rs                    # Autograd module
+│   │   └── engine.rs                 # Autograd engine
+│   ├── nn/
+│   │   ├── mod.rs                    # Neural network module
+│   │   ├── linear.rs                 # Linear layer
+│   │   ├── conv.rs                   # Convolution layers
+│   │   └── activation.rs             # Activation functions
+│   ├── cuda/
+│   │   ├── mod.rs                    # CUDA module
+│   │   ├── kernels/                  # CUDA kernels
+│   │   └── device.rs                 # Device management
+│   └── distributed/
+│       ├── mod.rs                    # Distributed module
+│       └── comm.rs                   # Communication primitives
+├── examples/
+│   ├── mnist.rs                      # MNIST example
+│   └── distributed.rs                # Distributed example
+└── tests/                            # Integration tests
+```
+
+### 5.3 Go Implementation
+```
+flash-go/
+├── go.mod                            # Go module file
+├── README.md                         # Project overview
+├── pkg/
+│   ├── tensor/
+│   │   ├── tensor.go                 # Tensor implementation
+│   │   └── ops.go                    # Tensor operations
+│   ├── autograd/
+│   │   ├── engine.go                 # Autograd engine
+│   │   └── node.go                   # Computation nodes
+│   ├── nn/
+│   │   ├── module.go                 # Base module
+│   │   ├── linear.go                 # Linear layer
+│   │   └── conv.go                   # Convolution layer
+│   ├── cuda/
+│   │   ├── device.go                 # Device management
+│   │   └── kernels/                  # CUDA kernels
+│   └── distributed/
+│       └── comm.go                   # Communication
+├── cmd/
+│   ├── mnist/                        # MNIST example
+│   └── distributed/                  # Distributed example
+├── internal/                         # Internal packages
+└── test/                            # Tests
+```
+
+### 5.4 Zig Implementation
+```
+flash-zig/
+├── build.zig                         # Build script
+├── README.md                         # Project overview
+├── src/
+│   ├── main.zig                      # Library root
+│   ├── tensor/
+│   │   ├── tensor.zig                # Tensor implementation
+│   │   └── ops.zig                   # Tensor operations
+│   ├── autograd/
+│   │   ├── engine.zig                # Autograd engine
+│   │   └── node.zig                  # Computation nodes
+│   ├── nn/
+│   │   ├── module.zig                # Base module
+│   │   ├── linear.zig                # Linear layer
+│   │   └── conv.zig                  # Convolution layer
+│   ├── cuda/
+│   │   ├── device.zig                # Device management
+│   │   └── kernels/                  # CUDA kernels
+│   └── distributed/
+│       └── comm.zig                  # Communication
+├── examples/
+│   ├── mnist.zig                     # MNIST example
+│   └── distributed.zig               # Distributed example
+└── test/                            # Tests
+```
+
+### 5.5 C Implementation
+```
+flash-c/
+├── Makefile                          # Build configuration
+├── README.md                         # Project overview
+├── include/
+│   ├── flash/
+│   │   ├── tensor.h                  # Tensor interface
+│   │   ├── autograd.h                # Autograd interface
+│   │   ├── nn.h                      # Neural network interface
+│   │   ├── cuda.h                    # CUDA interface
+│   │   └── distributed.h             # Distributed interface
+│   └── flash_internal.h              # Internal headers
+├── src/
+│   ├── tensor/
+│   │   ├── tensor.c                  # Tensor implementation
+│   │   └── ops.c                     # Tensor operations
+│   ├── autograd/
+│   │   ├── engine.c                  # Autograd engine
+│   │   └── node.c                    # Computation nodes
+│   ├── nn/
+│   │   ├── linear.c                  # Linear layer
+│   │   ├── conv.c                    # Convolution layer
+│   │   └── activation.c              # Activation functions
+│   ├── cuda/
+│   │   ├── device.c                  # Device management
+│   │   └── kernels/                  # CUDA kernels
+│   └── distributed/
+│       └── comm.c                    # Communication
+├── examples/
+│   ├── mnist.c                       # MNIST example
+│   └── distributed.c                 # Distributed example
+└── tests/                           # Unit tests
+```
+
+### 5.6 Python Bindings Implementation
+```
+flash-python/
+├── setup.py                          # Python package setup
+├── pyproject.toml                    # Build system requirements
+├── CMakeLists.txt                    # CMake config for C++ bindings
+├── README.md                         # Python package documentation
+├── flash/
+│   ├── __init__.py                  # Package initialization
+│   ├── _C/                          # C++ extension module
+│   │   ├── bindings/
+│   │   │   ├── tensor.cpp           # Tensor bindings
+│   │   │   ├── autograd.cpp         # Autograd bindings
+│   │   │   ├── nn.cpp              # Neural network bindings
+│   │   │   └── cuda.cpp            # CUDA operation bindings
+│   │   └── module.cpp               # Main binding module
+│   ├── tensor.py                    # Python Tensor wrapper
+│   ├── autograd.py                  # Autograd interface
+│   ├── nn/
+│   │   ├── __init__.py             # Neural network package
+│   │   ├── modules.py              # Base modules
+│   │   ├── linear.py               # Linear layers
+│   │   ├── conv.py                 # Convolution layers
+│   │   └── functional.py           # Functional interface
+│   ├── optim/
+│   │   ├── __init__.py             # Optimizer package
+│   │   ├── optimizer.py            # Base optimizer
+│   │   └── adam.py                 # Adam optimizer
+│   └── distributed/
+│       ├── __init__.py             # Distributed package
+│       └── parallel.py             # Parallel processing
+├── examples/
+│   ├── mnist.py                     # MNIST training example
+│   └── distributed_training.py      # Distributed training
+└── tests/
+    ├── test_tensor.py               # Tensor tests
+    ├── test_autograd.py             # Autograd tests
+    └── test_nn.py                   # Neural network tests
+```
+
+The Python bindings follow these design principles:
+
+1. **Seamless Integration**:
+   - Native Python types convert automatically to flash types
+   - NumPy-like interface for tensor operations
+   - PyTorch-like API for neural networks
+
+2. **Performance**:
+   - Zero-copy tensor operations where possible
+   - Direct access to C++ CUDA kernels
+   - Efficient memory management
+
+3. **Type Safety**:
+   - Strong type checking via pybind11
+   - Python type hints for better IDE support
+   - Clear error messages
+
+4. **Example Python Interface**:
+```python
+import flash
+import flash.nn as nn
+import flash.optim as optim
+
+# Create a simple neural network
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3)
+        self.fc1 = nn.Linear(32 * 26 * 26, 10)
+        
+    def forward(self, x):
+        x = self.conv1(x)
+        x = nn.functional.relu(x)
+        x = x.view(-1, 32 * 26 * 26)
+        x = self.fc1(x)
+        return x
+
+# Create model, optimizer, and move to GPU
+model = Net().cuda()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+# Training loop
+for epoch in range(10):
+    for data, target in dataloader:
+        data = flash.tensor(data).cuda()
+        target = flash.tensor(target).cuda()
+        
+        optimizer.zero_grad()
+        output = model(data)
+        loss = nn.functional.cross_entropy(output, target)
+        loss.backward()
+        optimizer.step()
+```
+
+5. **Key Components**:
+
+   a. **Core Bindings** (`flash/_C/`):
+      - Direct bindings to C++ classes and functions
+      - Memory management and type conversion
+      - CUDA operation exposure
+
+   b. **Python Wrappers** (`flash/`):
+      - High-level Python interfaces
+      - NumPy/PyTorch-like API
+      - Additional Python-specific features
+
+   c. **Neural Network API** (`flash.nn`):
+      - Module system matching PyTorch's design
+      - Layer implementations
+      - Functional interface
+
+   d. **Optimizers** (`flash.optim`):
+      - Standard optimization algorithms
+      - Learning rate scheduling
+      - Gradient clipping
+
+   e. **Distributed Training** (`flash.distributed`):
+      - Multi-GPU training support
+      - Process groups
+      - Collective operations
+
+6. **Build System Integration**:
+   ```python
+   # setup.py
+   from setuptools import setup, Extension
+   from setuptools.command.build_ext import build_ext
+   import pybind11
+
+   ext_modules = [
+       Extension(
+           "flash._C",
+           ["flash/_C/module.cpp"],
+           include_dirs=[pybind11.get_include()],
+           extra_compile_args=["-std=c++17"],
+           language='c++'
+       )
+   ]
+
+   setup(
+       name="flash",
+       version="0.1.0",
+       ext_modules=ext_modules,
+       cmdclass={"build_ext": build_ext},
+       install_requires=[
+           "numpy>=1.20.0",
+           "pybind11>=2.6.0",
+       ],
+   )
+   ```
+
+7. **Testing and Documentation**:
+   - Unit tests using pytest
+   - Integration tests with real models
+   - Comprehensive API documentation
+   - Jupyter notebook tutorials
+
+Each implementation follows the idioms and best practices of its respective language while maintaining similar functionality:
+- Tensor operations
+- Automatic differentiation
+- Neural network layers
+- CUDA acceleration
+- Distributed training support
+
+The core functionality remains consistent across implementations while leveraging each language's strengths:
+- Tensor operations
+- Automatic differentiation
+- Neural network layers
+- CUDA acceleration
+- Distributed training support
 
 ---
 
