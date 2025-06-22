@@ -1,4 +1,4 @@
-# flash: a hardware-optimized ML framework
+# flash: a hardware-optimized ML library
 
 flash is a high-performance machine learning framework written in C++ with CUDA support. It provides an intuitive, imperative API similar to PyTorch while delivering superior performance through hardware-optimized kernels.
 
